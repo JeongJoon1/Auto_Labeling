@@ -1,13 +1,14 @@
 # Auto_Labeling
-Scrapy에 Selenium 연동
-----------------------------------------------------------------------------------------
-
+## Scrapy에 Selenium 연동(naver image crawling)
 
 **[구현한 부분]**
-1. Scrapy에 내장되어 있는 downloadmiddleware와 Spider를 생성하여 Selenium과의 연동하여 지정한 URL을 open하는것까지 구현했습니다
-2. 사용자의 입력을 동적으로 받아들이는 부분
+* Scrapy에 내장되어 있는 Spider와 Selenium과의 연동하여 지정한 URL(Naver image Search)을 open
+* 사용자의 입력을 동적으로 받아들이는 부분(Keyboard input) 
+* infite scroll down(page 끝까지 내려감)
+* 큰이미지(_img)에 대해서 크롤링
+* 디렉토리 생성 후 이미지 다운로드 
 
 
-**[구현 못한 부분]**
-1.각 img 태그를 찾아가는 부분 
-2.창은 열리는데, Scroll down하여 모든 image들을 저장하는 부분
+**[해결해야 되는 부분]**  
+* 이미지를 크롤링하고 파일을 생성하여 다운로드까지는 됐는데 일부 사진들이 깨지거나,파일은 있는데 이미지가 안보이는 이슈가 발생 
+* 구글(chrome)과 네이버를 동시에 받아들이는 부분 => Scrapy 자체로는 한번에 하나의 Spider만 실행 가능하므로, scrapyd를 이용해야할것 같음
