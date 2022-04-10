@@ -1,5 +1,8 @@
 # Auto_Labeling
-## Scrapy에 Selenium 연동(naver image crawling)
+## Scrapy에 Selenium 연동(image crawling)
+
+**imgcrawler.py => naver crawler
+**gcrawler.py => google craweler
 
 **[구현한 부분]**
 * Scrapy에 내장되어 있는 Spider와 Selenium과의 연동하여 지정한 URL(Naver image Search)을 open
@@ -8,7 +11,6 @@
 * 큰이미지(_img)에 대해서 크롤링
 * 디렉토리 생성 후 이미지 다운로드 
 
-
 **[해결해야 되는 부분]**  
-* 이미지를 크롤링하고 파일을 생성하여 다운로드까지는 됐는데 일부 사진들이 깨지거나,파일은 있는데 이미지가 안보이는 이슈가 발생 
+* 이미지를 크롤링하고 파일을 생성하여 다운로드까지는 됐는데 일부 사진들이 깨지거나,파일은 있는데 이미지가 안보이는 이슈가 발생(구글에선 정상 작동)
 * 구글(chrome)과 네이버를 동시에 받아들이는 부분 => Scrapy 자체로는 한번에 하나의 Spider만 실행 가능하므로, scrapyd를 이용해야할것 같음
