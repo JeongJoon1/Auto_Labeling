@@ -70,13 +70,13 @@ class AutoLabelingDownloaderMiddleware:
         # This method is used by Scrapy to create your spiders.
         middleware = cls()
         crawler.signals.connect(middleware.spider_opened, signal=signals.spider_opened)
+        crawler.signals.connect(middleware.spider_closed, signal=signals.spider_closed)
         return middleware
 
     def spider_opened(self, spider):
         chrome_options = Options()
         chrome_options.add_argument( "--no-sandbox" )
         chrome_options.add_argument( "--disable-gpu" )
-
         driver = webdriver.Chrome(chrome_options=chrome_options)
         self.driver = driver
 
@@ -84,42 +84,10 @@ class AutoLabelingDownloaderMiddleware:
         self.driver.close()
 
     def process_request(self, request, spider):
-        # driver = webdriver.Chrome('chormedriver')
-        self.driver.get(request.url)
-        # #scroll을 끝까지 내려서 모든 사진을 다 다운받을 수 있게끔함
-        # SCROLL_PAUSE_TIME = 3
-        # # Get scroll height
-        # last_height = driver.execute_script("return document.body.scrollHeight")
-
-        # while True:
-        #     # Scroll down to bottom
-        #     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        #     # Wait to load page
-        #     sleep(SCROLL_PAUSE_TIME)
-        #     # Calculate new scroll height and compare with last scroll height
-        #     new_height = driver.execute_script("return document.body.scrollHeight")
-        #     if new_height == last_height: 
-        #         break
-        #     last_height = new_height
-
-        # #크롬내에서 이미지 검색 시 작은 이미지들을 검색하는 방법
-        # images= driver.find_elements_by_css_selector("._image _listImage")
-        # cnt=1
-        # for image in images:
-        #     try:
-        #         image.click()
-        #         #큰 이미지 검색
-        #         sleep(3)
-        #         imgUrl = driver.find_element_by_css_selector("._image").get_attribute("src")
-        #         #이미지를 최종적으로 download
-        #         urllib.request.urlretrieve(imgUrl,str(cnt)+".jpg")
-        #         cnt+=1
-        #     except:
-        #         pass
-        
-        body = to_bytes(text=self.driver.page_source)
-        sleep(5)
-        return HtmlResponse(url=request.url, body=body, encoding='utf-8', request=request )
+        # body = to_bytes(text=self.driver.page_source)
+        # sleep(5)
+        # return HtmlResponse(url=request.url, body=body, encoding='utf-8', request=request )
+        pass
             
     def process_response(self, request, response, spider):
         # Called with the response returned from the downloader.
