@@ -11,7 +11,10 @@ BOT_NAME = 'imagecrawler'
 
 SPIDER_MODULES = ['imagecrawler.spiders']
 NEWSPIDER_MODULE = 'imagecrawler.spiders'
-
+ITEM_PIPELINES = {
+    'imagecrawler.pipelines.ImagecrawlerPipeline': 1,
+}
+IMAGES_STORE = "images"
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'imagecrawler (+http://www.yourdomain.com)'

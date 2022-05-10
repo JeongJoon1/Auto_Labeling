@@ -9,4 +9,7 @@ import scrapy
 class ImagecrawlerItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
-    pass
+    image_urls = scrapy.Field() # 이미지
+    image_name = scrapy.Field()
+    save_folder = scrapy.Field()
+
