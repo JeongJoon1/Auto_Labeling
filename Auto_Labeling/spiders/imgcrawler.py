@@ -2,6 +2,7 @@ import scrapy
 from scrapy.crawler import CrawlerProcess 
 from scrapy.utils.project import get_project_settings
 from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.keys import Keys
 from urllib.parse import quote_plus
 from urllib.request import urlopen
@@ -9,6 +10,8 @@ import urllib.request
 import sys
 import time
 import os
+
+# start_time = time.time()
 
 #Chrome(spider #1)
 class GcrawlerSpider(scrapy.Spider):
@@ -21,7 +24,7 @@ class GcrawlerSpider(scrapy.Spider):
     if(keyword=='end'):
         sys.exit(0)
 
-    driver = webdriver.Chrome()
+    driver = webdriver.Chrome(ChromeDriverManager().install())
     driver.get("https://www.google.co.kr/imghp?hl=ko&ogbl")
     elem = driver.find_element_by_name("q") #google 검색어 입력 부분
     elem.send_keys(keyword) #keyboard입력값을 전송할 수 있음
@@ -84,7 +87,7 @@ class ImgcrawlerSpider(scrapy.Spider):
     driver = webdriver.Chrome()
     driver.get(search_url)
     
-    #scroll_down 구현부
+    #scroll_down 구현부(body)
     SCROLL_PAUSE_TIME = 2
     last_height = driver.execute_script("return document.body.scrollHeight")
     while True:
@@ -126,3 +129,5 @@ process = CrawlerProcess(settings)
 process.crawl(GcrawlerSpider)
 process.crawl(ImgcrawlerSpider)
 process.start() # the script will block here until all crawling jobs are finished
+
+# print("실행 시간 : %s초" % (time.time() - start_time))    
