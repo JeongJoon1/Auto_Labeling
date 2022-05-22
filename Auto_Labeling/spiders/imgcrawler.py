@@ -84,7 +84,7 @@ class ImgcrawlerSpider(scrapy.Spider):
     if(keyword=='end'):
         sys.exit(0)
     search_url = base+quote_plus(keyword)
-    driver = webdriver.Chrome()
+    driver = webdriver.Chrome(ChromeDriverManager().install())
     driver.get(search_url)
     
     #scroll_down 구현부(body)
