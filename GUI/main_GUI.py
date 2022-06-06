@@ -15,10 +15,7 @@ import urllib.request
 import sys
 import time
 import os
-from urllib import response
 import boto3
-import os
-from botocore.client import Config
 from requests import session
 
 main = Tk()
@@ -188,7 +185,7 @@ def createSharepage():
     def file_find():
         Sharepage.dirName=filedialog.askdirectory()
         dirpath.delete(0,END)
-        dirpath.insert(END,Sharepage.dirName)
+        dirpath.insert(END,Sharepage.dirName + "/")
 
     #AWS 권한 명시 
     session=boto3.Session(
@@ -201,6 +198,7 @@ def createSharepage():
     #업로드 할 s3 버킷명
     bucket='autolabeling'
 
+    #폴더 업로드
     def upload_dir():
         local_dir=dirpath.get()
         # enumerate local files recursively
@@ -208,11 +206,19 @@ def createSharepage():
             for filename in files:
                 # construct the full local path
                 local_path = os.path.join(root, filename)
-
+                
                 # construct the full Dropbox path
                 relative_path = os.path.relpath(local_path, local_dir)
-                s3_path = os.path.join(root, relative_path)
 
+                #parsing 1 (경로의 마지막에 /가 포함된 경우 이를 삭제)
+                if local_dir=="":
+                    pass
+                elif local_dir[-1]=="/":
+                    local_dir=local_dir[:-1:]
+                #parsing 2 (크롤링한 객체에 대해서만 dir명을 return)
+                new_path = os.path.basename(local_dir)
+                s3_path = os.path.join(new_path+"/", relative_path) #실제 s3에 업로드되는 경로를 생성 
+            
                 print ('Searching "%s" in "%s"' % (s3_path, bucket))
                 try:
                     s3.head_object(Bucket=bucket, Key=s3_path)
@@ -221,9 +227,39 @@ def createSharepage():
                     print ("Uploading %s..." % s3_path)
                     s3.upload_file(local_path, bucket, s3_path)
 
+    #다운로드 페이지(다운로드 할 클래스를 사용자가 직접 입력후, 그 검색어에 따라 폴더가 로컬컴에 저장됌)
+    def download_page():
+        dpage = Tk()
+        dpage.title('Download Class')
+        dpage.geometry('500x200')
+        dpage.resizable(False, False)
+
+        dsize = tkfont.Font(size=10)
+        D_label = Label(dpage,text="다운로드 할 클래스를 입력하세요.",height="3",font=dsize)
+        D_label.pack()
+
+        class_search = StringVar()
+        dtextbox = Entry(dpage,width=20,textvariable=class_search)
+        dtextbox.place(x=180,y=90)
+
+        def downloadDirectoryFroms3():
+            s3_resource = boto3.resource('s3')
+            bucket = s3_resource.Bucket('autolabeling')
+            downvar = class_search.get()
+            for obj in bucket.objects.filter(Prefix= downvar + "/"): #Prefix에서 downvar에 담긴 검색어를 인식 못하는 이슈 (경로를 직접 코드에 선언시 다운로드가 정상 작동함)
+                if not os.path.exists(os.path.dirname(obj.key)):
+                    os.makedirs(os.path.dirname(obj.key))
+                bucket.download_file(obj.key,obj.key)            
+    
+        download_btn = Button(dpage,text="다운로드",command=downloadDirectoryFroms3) 
+        download_btn.place(x=220,y=130)
+
+
     fr_bt = Frame(Sharepage)
     fr_bt.pack(fill="x",padx=1,pady=1)
 
+    bt_find = Button(fr_bt,text="Download",width=10, command=download_page) #command로는 download page로 이동함
+    bt_find.pack(side="right",padx=1,pady=1)
     bt_upload = Button(fr_bt,text="Upload",width=10,command=upload_dir) #업로드 버튼
     bt_upload.pack(side="right",padx=1,pady=1)
     bt_find = Button(fr_bt,text="Find",width=10,command=file_find) #dir 불러오는 버튼
