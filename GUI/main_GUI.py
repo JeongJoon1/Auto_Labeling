@@ -242,7 +242,7 @@ def createSharepage():
         dtextbox = Entry(dpage,width=20,textvariable=class_search)
         dtextbox.place(x=180,y=90)
 
-        def downloadDirectoryFroms3(): #사용자의 입력에 따라서 Class별 폴더를 다운로드 받음 
+        def downloadDirectoryFroms3(): #사용자의 입력을 통해 Class별 폴더를 다운로드 받음 
             s3_resource = boto3.resource('s3')
             bucket = s3_resource.Bucket('autolabeling')
             downvar = dtextbox.get()
