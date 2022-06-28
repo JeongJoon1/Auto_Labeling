@@ -17,11 +17,82 @@ import time
 import os
 import boto3
 from requests import session
+import cv2
+import numpy as np
+import shutil
 
 main = Tk()
 main.title('Image Auto Labeling Tool')
 main.geometry('620x500')
 main.resizable(False, False)
+
+def classification(path_dir, search):
+    net = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
+    classes = []
+    with open("coco.names", "r") as f:
+        classes = [line.strip() for line in f.readlines()]
+    layer_names = net.getLayerNames()
+    print(net.getUnconnectedOutLayers())
+    output_layers = [layer_names[i - 1] for i in net.getUnconnectedOutLayers()]
+    colors = np.random.uniform(0, 255, size=(len(classes), 3))
+
+    # Loading image
+    #path_dir = 'C://Users//Joon//Auto_Labeling//auto_labeling//car'
+    #search = 'car'
+    file_list = os.listdir(path_dir)
+    os.mkdir(path_dir + "//noclass")
+
+    for imgfile in file_list:
+        # img_name = "test.jpg"
+        img = cv2.imread(path_dir + "/" + imgfile)
+        img_name = imgfile
+        #img = cv2.resize(img, None, fx=0.5, fy=0.5)
+        height, width, channels = img.shape
+
+        # Detecting objects
+        blob = cv2.dnn.blobFromImage(img, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
+
+        net.setInput(blob)
+        outs = net.forward(output_layers)
+
+        # Showing informations on the screen
+        class_ids = []
+        confidences = []
+        boxes = []
+        detections = []
+        labels = []
+        count = 0
+        sum_confidence = 0
+
+        for out in outs:
+            for detection in out:
+                scores = detection[5:]
+                class_id = np.argmax(scores)
+                confidence = scores[class_id]
+                if confidence > 0.5:
+                    sum_confidence += confidence
+                    count += 1
+                    # Object detected
+                    center_x = int(detection[0] * width)
+                    center_y = int(detection[1] * height)
+                    w = int(detection[2] * width)
+                    h = int(detection[3] * height)
+
+                    # Rectangle coordinates
+                    x = int(center_x - w / 2)
+                    y = int(center_y - h / 2)
+                    
+                    detections.append([detection[0],detection[1],detection[2],detection[3]])
+                    boxes.append([x, y, w, h])
+                    confidences.append(float(confidence))
+                    class_ids.append(class_id)
+                    labels.append(str(classes[class_id]))
+
+        #print(labels)
+        file_destination = path_dir + "//noclass"
+        if not search in labels:
+            shutil.move(path_dir + "//" + imgfile, file_destination)
+
 
 #크롤링 창  
 def createCrawlpage():
@@ -83,6 +154,7 @@ def createCrawlpage():
             
             save_path = './img/'+keyword+"/"
             crawl_file = create_folder(save_path)
+            dir_path = './img/'+keyword
 
             #이미지를 긁어오기(Crawling)
             images= driver.find_elements_by_css_selector(".rg_i.Q4LuWd")
@@ -98,6 +170,7 @@ def createCrawlpage():
                     cnt+=1
                 except:
                     pass   
+            classification(dir_path, keyword)
             driver.close()
 
     #네이버 크롤링 
@@ -137,6 +210,7 @@ def createCrawlpage():
                     print("Error : Creating Directory. "+directory) 
             save_path = './img/'+keyword+"/"
             crawl_file = create_folder(save_path)
+            dir_path = './img/'+keyword
 
             #이미지를 긁어오기(Crawling)
             images = driver.find_elements_by_class_name("_image")
@@ -151,6 +225,7 @@ def createCrawlpage():
                     cnt+=1
                 except:
                     pass    
+            classification(dir_path, keyword)
             driver.close()
   
 
@@ -173,7 +248,89 @@ def createCrawlpage():
 def folder_open():
     filedialog.askopenfilename(initialdir='./img',title='파일선택', filetypes=(('jpg files','*.jpg'),('all files','*.*')))
 
+def createAutolabeling():
+    dirPath = filedialog.askdirectory(parent=main, initialdir="/", title='폴더를 선택해주세요.')
 
+    # Load Yolo
+    net = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
+    classes = []
+    with open("coco.names", "r") as f:
+        classes = [line.strip() for line in f.readlines()]
+    layer_names = net.getLayerNames()
+    print(net.getUnconnectedOutLayers())
+    output_layers = [layer_names[i - 1] for i in net.getUnconnectedOutLayers()]
+    colors = np.random.uniform(0, 255, size=(len(classes), 3))
+
+    # Loading image
+    path_dir = dirPath
+    file_list = os.listdir(path_dir)
+
+    for imgfile in file_list:
+        # img_name = "test.jpg"
+        img = cv2.imread(path_dir + "/" + imgfile)
+        img_name = imgfile
+        #img = cv2.resize(img, None, fx=0.5, fy=0.5)
+        height, width, channels = img.shape
+
+        # Detecting objects
+        blob = cv2.dnn.blobFromImage(img, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
+
+        net.setInput(blob)
+        outs = net.forward(output_layers)
+
+        # Showing informations on the screen
+        class_ids = []
+        confidences = []
+        boxes = []
+        detections = []
+        count = 0
+        sum_confidence = 0
+        precision = 0
+
+        for out in outs:
+            for detection in out:
+                scores = detection[5:]
+                class_id = np.argmax(scores)
+                confidence = scores[class_id]
+                if confidence > 0.5:
+                    sum_confidence += confidence
+                    count += 1
+                    # Object detected
+                    center_x = int(detection[0] * width)
+                    center_y = int(detection[1] * height)
+                    w = int(detection[2] * width)
+                    h = int(detection[3] * height)
+
+                    # Rectangle coordinates
+                    x = int(center_x - w / 2)
+                    y = int(center_y - h / 2)
+                    
+                    detections.append([detection[0],detection[1],detection[2],detection[3]])
+                    boxes.append([x, y, w, h])
+                    confidences.append(float(confidence))
+                    class_ids.append(class_id)
+        
+        # precision = sum_confidence/count
+        # print(imgfile + "  정확도: " + str(round(precision, 4)*100))
+        
+        if count == 0 or sum_confidence/count < 0.7:
+            os.mkdir(path_dir + "/" + "inspection")
+            shutil.move(path_dir + "//" + imgfile, path_dir + "//inspection")
+        else:
+            indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
+            font = cv2.FONT_HERSHEY_PLAIN
+            out_file = open(path_dir + "/" + img_name.rsplit(".")[0] + ".txt", 'w', encoding='utf-8')
+            for i in range(len(boxes)):
+                if i in indexes:
+                    x, y, w, h = boxes[i]
+                    d1,d2,d3,d4 = detections[i]
+                    out_file.write("%d %.6f %.6f %.6f %.6f\n" % (class_ids[i], d1, d2, d3, d4))
+                    # print(detections[i])
+                    # print(class_ids[i])
+                    label = str(classes[class_ids[i]])
+                    color = colors[class_ids[i]]
+                    cv2.rectangle(img, (x, y), (x + w, y + h), color, 2)
+                    cv2.putText(img, label, (x, y + 30), font, 3, color, 3)
 
 #데이터셋 공유 창
 def createSharepage():
@@ -275,7 +432,7 @@ title_label = Label(main,text="Image Auto Labeling Tool", height="3",font=fontsi
 #초기화면 버튼부 
 crawl_btn = Button(main, text="크롤링", width="17", height="5",command=createCrawlpage)
 crawl_btn.place(x=80, y=200)
-label_btn = Button(main, text="자동라벨링", width="17", height="5")
+label_btn = Button(main, text="자동라벨링", width="17", height="5", command=createAutolabeling)
 label_btn.place(x=260, y=200)
 share_btn=Button(main,text="데이터셋 공유",width="17",height="5",command=createSharepage)
 share_btn.place(x=450,y=200)
